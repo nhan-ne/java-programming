@@ -15,7 +15,7 @@ public class FoodRenderer extends BaseRenderer {
         "/image/food/Pineapple.png",
         "/image/food/Watermelon.png",
         "/image/food/Apple.png",    
-        "/image/food/Banana.png",
+        "/image/food/Banana.png",   
         "/image/food/Orange.png",
         "/image/food/Cherry.png",
         "/image/food/Mulberry.png",

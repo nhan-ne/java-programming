@@ -5,25 +5,30 @@ import javax.swing.SwingUtilities;
 
 import resource.code.Model.FoodManager;
 import resource.code.Model.GameModel;
+import resource.code.Model.ScoreManager;
 import resource.code.Model.SnakeManager;
 import resource.code.View.GameView;
-import resource.code.View.StartGame; // Import the new StartGame class
+import resource.code.View.StartGame;
 
 public class GameController {
     private final GameModel model;
     private final FoodManager foodModel;
     private final SnakeManager snakeModel;
+    
     private final GameView view;
     private final GameManager gameManager;
     private final KeyManager keyManager;
+    private final ScoreManager scoreManager;
+    
 
     public GameController() {
         model = new GameModel(20, 20);
         foodModel = new FoodManager(20);
         snakeModel = new SnakeManager(5, 5, SnakeManager.Direction.RIGHT);
-        
-        view = new GameView(model, foodModel, snakeModel);
-        gameManager = new GameManager(model, foodModel, snakeModel, view);
+        scoreManager = new ScoreManager();
+
+        view = new GameView(model, foodModel, snakeModel, scoreManager);
+        gameManager = new GameManager(model, foodModel, snakeModel, view, scoreManager);
         keyManager = new KeyManager(snakeModel);
 
         // Set up JFrame

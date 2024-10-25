@@ -19,7 +19,7 @@ public class GameOverManager {
 
     public void checkGameOver(SnakeManager snakeManager, int rows, int cols) {
         Point head = snakeManager.getHead();
-        if (head.x < 0 || head.x >= cols || head.y < 0 || head.y >= rows) {
+        if (head.x < 0 + 1|| head.x >= cols - 1  || head.y < 0 + 1 || head.y >= rows - 1) {
             setGameOver(true);
         }
         if (snakeManager.checkSelfCollision()) {

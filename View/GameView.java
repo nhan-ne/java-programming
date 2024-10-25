@@ -7,21 +7,24 @@ import javax.swing.JPanel;
 
 import resource.code.Model.FoodManager;
 import resource.code.Model.GameModel;
+import resource.code.Model.ScoreManager;
 import resource.code.Model.SnakeManager;
 
 public class GameView extends JPanel {
     private final MapRenderer mapRenderer;
     private final FoodRenderer foodRenderer;
     private final SnakeRenderer snakeRenderer;
+    private final ScoreRenderer scoreRenderer; 
     private final int cellSize;
 
-    public GameView(GameModel model, FoodManager foodModel, SnakeManager snakeModel) {
+    public GameView(GameModel model, FoodManager foodModel, SnakeManager snakeModel, ScoreManager scoreManager) {
         this.cellSize = 30;
 
         // Khởi tạo renderers với cellSize
         this.mapRenderer = new MapRenderer(model, cellSize);
         this.foodRenderer = new FoodRenderer(foodModel, cellSize);
         this.snakeRenderer = new SnakeRenderer(snakeModel, cellSize);
+        this.scoreRenderer = new ScoreRenderer(scoreManager);
     }
 
     @Override
@@ -36,6 +39,9 @@ public class GameView extends JPanel {
 
         // Render the snake
         snakeRenderer.render(g);
+
+        // Render the score
+        scoreRenderer.render(g);
     }
 
     @Override
