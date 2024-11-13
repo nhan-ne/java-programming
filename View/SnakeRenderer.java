@@ -19,10 +19,10 @@ public class SnakeRenderer {
     public SnakeRenderer(SnakeManager snake, int cellSize) {
         this.snake = snake;
         this.cellSize = cellSize;
-        loadImages(); // Load images for snake body and head
+        loadImages(); // Tải hình ảnh cho thân và đầu rắn
     }
 
-    // Load images for the snake's body and head for different directions
+    // Tải hình ảnh cho thân và đầu rắn ở các hướng khác nhau
     private void loadImages() {
         String[] imagePaths = {
             "/image/Snake/BodySnake.png",
@@ -39,16 +39,16 @@ public class SnakeRenderer {
             headLeft = ImageIO.read(getClass().getResource(imagePaths[3]));
             headRight = ImageIO.read(getClass().getResource(imagePaths[4]));
         } catch (IOException | IllegalArgumentException e) {
-            System.err.println("Could not load images: " + e.getMessage());
+            System.err.println("Không thể tải hình ảnh: " + e.getMessage());
         }
     }
 
-    // Render the snake based on its current direction
+    // Vẽ con rắn theo hướng hiện tại
     public void render(Graphics g) {
         var body = snake.getBody();
-        SnakeManager.Direction direction = snake.getDirection(); // Get the snake's movement direction
+        SnakeManager.Direction direction = snake.getDirection(); // Lấy hướng di chuyển của con rắn
 
-        // Choose the head image based on the current direction
+        // Chọn hình ảnh đầu con rắn theo hướng hiện tại
         Image headImage = switch (direction) {
             case UP -> headUp;
             case DOWN -> headDown;
@@ -56,11 +56,11 @@ public class SnakeRenderer {
             case RIGHT -> headRight;
         };
 
-        // Draw the snake's head
+        // Vẽ đầu con rắn
         Point head = body.getFirst();
         g.drawImage(headImage, head.x * cellSize, head.y * cellSize, cellSize, cellSize, null);
 
-        // Draw the snake's body
+        // Vẽ thân con rắn
         for (int i = 1; i < body.size(); i++) {
             Point segment = body.get(i);
             g.drawImage(bodyImage, segment.x * cellSize, segment.y * cellSize, cellSize, cellSize, null);

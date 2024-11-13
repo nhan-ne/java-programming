@@ -8,7 +8,7 @@ public abstract class BaseRenderer {
     public BaseRenderer(int cellSize) {
         this.cellSize = cellSize;
     }
-
+    //Phương thức render trừu tượng, các lớp kế thừa phải cài đặt phương thức này để vẽ
     public abstract void render(Graphics g);
 }
 

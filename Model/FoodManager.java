@@ -2,68 +2,101 @@ package resource.code.Model;
 
 import java.awt.Point;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-public class FoodManager {
-    private final int[] x = new int[8]; // Mảng lưu tọa độ X của 8 vị trí thực phẩm
-    private final int[] y = new int[8]; // Mảng lưu tọa độ Y của 8 vị trí thực phẩm
-    private final int[] selectedFood = new int[3]; // Mảng lưu trữ chỉ số của thực phẩm được chọn
-    private final int gridSize; // Kích thước lưới
+public final class FoodManager {
+    private final int gridSize;
+    private final List<String> foodIds;
+    private final Point[] selectedFoodPositions;  // Mảng lưu trữ vị trí các món ăn đã chọn dưới dạng Point
+    private final Point[] foodPositions;  // Mảng lưu trữ tất cả các vị trí món ăn dưới dạng Point
+    private final FoodQDB foodQDB;
 
-    public FoodManager(int gridSize) {
-        this.gridSize = gridSize; // Khởi tạo kích thước lưới
-        update(new HashSet<>()); // Cập nhật vị trí thực phẩm ban đầu
+    public FoodManager(int gridSize, FoodQDB foodQDB) {
+        this.gridSize = gridSize;
+        this.foodQDB = foodQDB; // Khởi tạo FoodQDB
+        this.foodIds = List.copyOf(foodQDB.getScoreFood().keySet());
+        this.foodPositions = new Point[foodIds.size()];
+        this.selectedFoodPositions = new Point[3];  // Giả sử có 3 món ăn được chọn
+        update(new HashSet<>(), new HashSet<>());
     }
 
-    private void generatePosition(Set<Point> snakeBody) {
-        Random rand = new Random(); // Khởi tạo đối tượng Random để sinh số ngẫu nhiên
-        Set<Integer> usedPositions = new HashSet<>(); // Tập hợp lưu trữ các vị trí đã sử dụng
+    // Tạo vị trí món ăn, tránh các vị trí của thân rắn và các vị trí của potion
+    private void generatePosition(Set<Point> snakePositions, Set<Point> potionPositions) {
+        Random rand = new Random();
+        Set<Integer> usedPositions = new HashSet<>();  // Mảng lưu các vị trí đã được sử dụng
 
-        for (int i = 0; i < x.length; i++) {
+        for (int i = 0; i < foodIds.size(); i++) {
             int posX, posY;
             do {
-                // Sinh tọa độ ngẫu nhiên cho thực phẩm trong lưới, đảm bảo không nằm ở biên
                 posX = 1 + rand.nextInt(gridSize - 2);
                 posY = 1 + rand.nextInt(gridSize - 2);
-            } while (usedPositions.contains(posX + posY * gridSize) || snakeBody.contains(new Point(posX, posY))); // Kiểm tra vị trí đã được sử dụng và không nằm trên cơ thể rắn
-            
-            x[i] = posX; // Lưu tọa độ X
-            y[i] = posY; // Lưu tọa độ Y
-            usedPositions.add(posX + posY * gridSize); // Thêm vào danh sách các vị trí đã sử dụng
+            } while (usedPositions.contains(posX + posY * gridSize) || snakePositions.contains(new Point(posX, posY)) || potionPositions.contains(new Point(posX, posY)));
+
+            foodPositions[i] = new Point(posX, posY);  // Lưu vị trí món ăn vào mảng
+            usedPositions.add(posX + posY * gridSize);  // Thêm vị trí vào danh sách đã sử dụng
         }
+        selectFood();  // Chọn các món ăn từ vị trí đã tạo
     }
 
+    // Chọn món ăn từ các vị trí đã tạo
     private void selectFood() {
-        Random rand = new Random(); // Khởi tạo đối tượng Random để chọn thực phẩm
-        Set<Integer> selectedIndices = new HashSet<>(); // Tập hợp lưu trữ các chỉ số thực phẩm đã chọn
+        Random rand = new Random();
+        Set<Integer> selectedIndices = new HashSet<>();  // Tập các chỉ số món ăn đã chọn
 
-        while (selectedIndices.size() < selectedFood.length) { // Đảm bảo chọn đủ số lượng thực phẩm
-            int index = rand.nextInt(8); // Chọn ngẫu nhiên chỉ số thực phẩm từ 0 đến 7
-            selectedIndices.add(index); // Thêm chỉ số vào tập hợp
+        // Đảm bảo chỉ chọn các chỉ số khác nhau
+        while (selectedIndices.size() < selectedFoodPositions.length) {
+            int index = rand.nextInt(foodIds.size());  // Chọn chỉ số ngẫu nhiên
+            selectedIndices.add(index);  // Thêm chỉ số vào danh sách đã chọn
         }
 
+        // Điền các vị trí món ăn đã chọn vào mảng
         int i = 0;
-        for (Integer index : selectedIndices) { // Chuyển các chỉ số đã chọn vào mảng selectedFood
-            selectedFood[i++] = index;
+        for (Integer index : selectedIndices) {
+            selectedFoodPositions[i++] = foodPositions[index];
         }
     }
 
-    public void update(Set<Point> snakeBody) {
-        generatePosition(snakeBody); // Sinh các vị trí thực phẩm mới, đảm bảo không nằm trên cơ thể rắn
-        selectFood(); // Chọn các thực phẩm để sử dụng
+    // Cập nhật vị trí món ăn, tránh thân rắn và potion
+    public void update(Set<Point> snakePositions, Set<Point> potionPositions) {
+        generatePosition(snakePositions, potionPositions);  // Tạo món ăn tránh rắn và potion
     }
 
-    public int[][] getPosition() {
-        int[][] positions = new int[3][2]; // Mảng để lưu tọa độ của thực phẩm đã chọn
-        for (int i = 0; i < selectedFood.length; i++) {
-            positions[i][0] = x[selectedFood[i]]; // Lưu tọa độ X
-            positions[i][1] = y[selectedFood[i]]; // Lưu tọa độ Y
+    // Trả về các vị trí món ăn đã chọn dưới dạng Set các Point
+    public Set<Point> getPosition() {
+        Set<Point> foodSet = new HashSet<>();
+        for (Point foodPosition : selectedFoodPositions) {
+            foodSet.add(foodPosition);  // Thêm mỗi vị trí món ăn đã chọn vào tập
         }
-        return positions; // Trả về tọa độ của thực phẩm đã chọn
+        return foodSet;
     }
 
-    public int[] getSelectedFood() {
-        return selectedFood; // Trả về các chỉ số thực phẩm đã chọn
+    // Trả về các chỉ số của món ăn đã chọn dựa trên vị trí của chúng
+    public int[] getSelectedFoodIndexes() {
+        int[] selectedFoodIndexes = new int[selectedFoodPositions.length];
+
+        for (int i = 0; i < selectedFoodPositions.length; i++) {
+            // Tìm chỉ số của mỗi vị trí món ăn đã chọn trong mảng foodPositions
+            selectedFoodIndexes[i] = findFoodIndex(selectedFoodPositions[i]);
+        }
+
+        return selectedFoodIndexes;
+    }
+
+    // Phương thức hỗ trợ tìm chỉ số của một vị trí món ăn
+    private int findFoodIndex(Point position) {
+        for (int i = 0; i < foodPositions.length; i++) {
+            if (foodPositions[i].equals(position)) {
+                return i;  // Trả về chỉ số của vị trí tương ứng
+            }
+        }
+        return -1;
+    }
+
+    // Phương thức mới để lấy đường dẫn hình ảnh từ FoodQDB
+    public Map<String, String> getImagePaths() {
+        return foodQDB.getImagePaths(); 
     }
 }

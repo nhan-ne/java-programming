@@ -10,31 +10,43 @@ public final class SnakeManager {
     private final int startX; // Tọa độ X khởi đầu
     private final int startY; // Tọa độ Y khởi đầu
     private final Direction startDirection; // Hướng khởi đầu
+    private boolean hasStarted;  // Trạng thái bắt đầu game
+    private int speed; // Tốc độ di chuyển của rắn
 
     public enum Direction {
         UP, DOWN, LEFT, RIGHT
     }
 
-    public SnakeManager(int startX, int startY, Direction startDirection) {
-        this.startX = startX; // Khởi tạo tọa độ X
-        this.startY = startY; // Khởi tạo tọa độ Y
-        this.startDirection = startDirection; // Khởi tạo hướng
-        body = new LinkedList<>(); // Khởi tạo danh sách cơ thể rắn
-        reset(); // Đặt lại trạng thái ban đầu cho rắn
+    // Constructor
+    public SnakeManager(int startX, int startY, Direction startDirection, int initialLength) {
+        this.startX = startX;
+        this.startY = startY;
+        this.startDirection = startDirection;
+        body = new LinkedList<>();
+        reset(initialLength);  // Sử dụng tham số này để thay đổi chiều dài ban đầu
     }
 
-    public void reset() {
-        body.clear(); // Xóa danh sách cơ thể rắn
-        body.add(new Point(startX, startY)); // Thêm đầu rắn tại vị trí khởi đầu
-        direction = startDirection; // Đặt hướng khởi đầu
-        grow = false; // Đặt biến grow về false
+    // Phương thức reset lại rắn, tạo độ dài ban đầu cho rắn
+    public void reset(int initialLength) {
+        body.clear();
+        for (int i = 0; i < initialLength; i++) {
+            body.add(new Point(startX - i, startY));  // Tạo các đoạn thân rắn ở vị trí ban đầu
+        }
+
+        direction = startDirection;
+        grow = false;
+        hasStarted = false;
+        speed = 150;  // Tốc độ ban đầu
     }
 
+    // Phương thức di chuyển rắn
     public void move() {
-        Point head = getHead(); // Lấy vị trí đầu rắn
-        Point newHead = new Point(head); // Tạo một điểm mới cho đầu rắn
+        if (!hasStarted) return;  // Nếu game chưa bắt đầu, không di chuyển
 
-        // Cập nhật vị trí đầu rắn dựa trên hướng hiện tại
+        Point head = getHead();
+        Point newHead = new Point(head);
+
+        // Nếu di chuyển, giảm tọa độ theo hướng
         switch (direction) {
             case UP -> newHead.translate(0, -1);
             case DOWN -> newHead.translate(0, 1);
@@ -42,55 +54,72 @@ public final class SnakeManager {
             case RIGHT -> newHead.translate(1, 0);
         }
 
-        body.addFirst(newHead); // Thêm đầu rắn mới vào danh sách
+        body.addFirst(newHead); // Thêm đoạn mới vào đầu
         if (!grow) {
-            body.removeLast(); // Nếu không lớn thêm thì xóa đuôi
+            body.removeLast(); // Loại bỏ đoạn cuối nếu không cần grow
         } else {
-            grow = false; // Reset biến grow
+            grow = false; // Reset lại biến grow sau khi rắn phát triển
         }
     }
 
-    public void grow() {
-        grow = true; // Đặt cờ cho rắn lớn thêm
+    // Phương thức bắt đầu di chuyển rắn
+    public void startMoving() {
+        hasStarted = true;  // Cập nhật trạng thái khi game bắt đầu
     }
 
-    public boolean checkFoodCollision(int[] foodPosition) {
-        Point head = getHead(); // Lấy vị trí đầu rắn
-        return head.x == foodPosition[0] && head.y == foodPosition[1]; // Kiểm tra va chạm với thực phẩm
+    // Phương thức để rắn phát triển thêm
+public void grow(int segments) {
+    // Lấy điểm cuối của rắn (đoạn thân cuối cùng)
+    Point lastSegment = body.getLast();
+    
+    // Thêm từng đoạn mới vào cuối cùng theo hướng ngược lại với đầu
+    for (int i = 0; i < segments; i++) {
+        // Thêm một đoạn thân mới vào cuối cùng của rắn, vị trí được tính từ cuối
+        Point newSegment = new Point(lastSegment);
+        body.addLast(newSegment);
     }
 
+    grow = true;  // Đánh dấu rằng rắn cần phát triển
+}
+
+
+    // Phương thức thay đổi hướng của rắn
     public void setDirection(Direction newDirection) {
-        // Ngăn chặn rắn quay ngược lại
-        if (direction == Direction.UP && newDirection != Direction.DOWN) {
-            direction = newDirection;
-        } else if (direction == Direction.DOWN && newDirection != Direction.UP) {
-            direction = newDirection;
-        } else if (direction == Direction.LEFT && newDirection != Direction.RIGHT) {
-            direction = newDirection;
-        } else if (direction == Direction.RIGHT && newDirection != Direction.LEFT) {
+        // Kiểm tra không cho phép quay ngược lại hướng đối diện
+        if ((direction == Direction.UP && newDirection != Direction.DOWN) ||
+            (direction == Direction.DOWN && newDirection != Direction.UP) ||
+            (direction == Direction.LEFT && newDirection != Direction.RIGHT) ||
+            (direction == Direction.RIGHT && newDirection != Direction.LEFT)) {
             direction = newDirection;
         }
     }
 
+    // Lấy đầu của rắn
     public Point getHead() {
-        return body.getFirst(); // Trả về vị trí của đầu rắn
+        return body.getFirst();
     }
 
+    // Lấy toàn bộ cơ thể rắn
     public LinkedList<Point> getBody() {
-        return body; // Cung cấp quyền truy cập vào cơ thể rắn
+        return body;
     }
 
+    // Lấy hướng hiện tại của rắn
     public Direction getDirection() {
-        return direction; // Cung cấp quyền truy cập vào hướng hiện tại
+        return direction;
     }
 
-    public boolean checkSelfCollision() {
-        Point head = getHead(); // Lấy vị trí đầu rắn
-        for (int i = 1; i < body.size(); i++) { // Kiểm tra va chạm với chính mình
-            if (head.equals(body.get(i))) {
-                return true; // Va chạm với chính mình
-            }
-        }
-        return false; // Không có va chạm
+    // Getter và Setter cho speed
+    public int getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(int speed) {
+        this.speed = Math.max(50, Math.min(250, this.speed + speed));  // Điều chỉnh tốc độ trong khoảng từ 50 đến 250
+    }
+
+    // Phương thức tăng tốc độ di chuyển của rắn
+    public void increaseSpeed() {
+        this.speed = Math.max(50, this.speed - 5);  // Tăng tốc độ (giảm giá trị speed)
     }
 }

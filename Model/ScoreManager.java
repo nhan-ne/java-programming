@@ -1,29 +1,31 @@
-// File: ScoreManager.java
 package resource.code.Model;
 
 public class ScoreManager {
-    private int score; // Biến lưu trữ điểm số hiện tại
+    private int score;
+    private final FoodQDB foodQDB;
 
-    public ScoreManager() {
-        this.score = 0; // Khởi tạo điểm số là 0
+    public ScoreManager(FoodQDB foodQDB) {
+        this.score = 0;
+        this.foodQDB = foodQDB;
     }
 
-    // Phương thức tăng điểm
-    public void increaseScore(int points) {
-        this.score += points;
-    }
-
-    // Phương thức thiết lập điểm
-    public void setScore(int score) {
-        this.score = score;
-    }
-
-    // Phương thức lấy điểm số hiện tại
     public int getScore() {
-        return this.score;
+        return score;
+    }
+    // Thêm điểm cho mỗi thức ăn
+    public void addScoreForFood(int foodIndex) {
+        // Sử dụng ID thực phẩm để lấy điểm
+        String foodId = foodQDB.getScoreFood().keySet().toArray(new String[0])[foodIndex];
+        Integer foodScore = foodQDB.getScoreFood().get(foodId);
+
+        if (foodScore != null) {
+            score += foodScore;
+        }
+    }
+    public void potionX2Score() {
+        score *= 2;
     }
 
-    // Phương thức đặt lại điểm số
     public void resetScore() {
         this.score = 0;
     }

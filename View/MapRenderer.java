@@ -49,13 +49,13 @@ public class MapRenderer extends BaseRenderer {
         }
     }
 
-    // Method to get the number of columns
-    public int getCols() {
-        return model.getCols();
-    }
+    // Phương thức lấy số lượng cột
+public int getCols() {
+    return model.getCols();
+}
 
-    // Method to get the number of rows
-    public int getRows() {
-        return model.getRows();
-    }
+// Phương thức lấy số lượng hàng
+public int getRows() {
+    return model.getRows();
+}
 }
