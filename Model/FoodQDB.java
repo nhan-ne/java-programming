@@ -16,6 +16,7 @@ public final class FoodQDB {
     private final DatabaseConnect dbConnect;  // Kết nối cơ sở dữ liệu
     private Map<String, Integer> foodScoresCache;  // Lưu trữ điểm số của thực phẩm
     private Map<String, String> imagePathsCache;  // Lưu trữ đường dẫn hình ảnh của thực phẩm
+    private Map<String, String> infoCache;  // Lưu trữ thông tin chi tiết của thực phẩm
 
     public FoodQDB() {
         dbConnect = new DatabaseConnect();  // Khởi tạo kết nối cơ sở dữ liệu
@@ -24,13 +25,14 @@ public final class FoodQDB {
 
     // Tải dữ liệu từ cơ sở dữ liệu
     private synchronized void loadData() {
-        if (foodScoresCache == null || imagePathsCache == null) {
+        if (foodScoresCache == null || imagePathsCache == null || infoCache == null) {
             foodScoresCache = new HashMap<>();
             imagePathsCache = new HashMap<>();
-            
-            // Tải dữ liệu điểm số thực phẩm và đường dẫn hình ảnh
+            infoCache = new HashMap<>();
+
             loadFoodScores();
             loadImagePaths();
+            loadInfoCache();
         }
     }
 
@@ -72,6 +74,27 @@ public final class FoodQDB {
         }
     }
 
+    // Tải dữ liệu thông tin thực phẩm từ cơ sở dữ liệu
+    private void loadInfoCache() {
+        String sqlInfo = "SELECT idFood, nameFood , scoreFood FROM Food";  // Câu lệnh SQL để lấy thông tin thực phẩm
+        try (Connection connection = dbConnect.getConnection();
+            PreparedStatement stmt = connection.prepareStatement(sqlInfo);
+            ResultSet rs = stmt.executeQuery()) {
+
+            while (rs.next()) {
+                String idFood = rs.getString("idFood");
+                String nameFood = rs.getString("nameFood");
+                int scoreFood = rs.getInt("scoreFood");
+
+                // Lưu thông tin thực phẩm vào cache dưới dạng một đối tượng hoặc chuỗi
+                String info = nameFood + " : " + scoreFood;
+                infoCache.put(idFood, info);  // Lưu thông tin thực phẩm vào cache
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Lỗi khi tải thông tin thực phẩm: ", e);
+        }
+    }
+
     // Kiểm tra tính hợp lệ của đường dẫn hình ảnh
     private boolean isImagePathValid(String imagePath) {
         if (imagePath == null || imagePath.isEmpty()) {
@@ -89,6 +112,10 @@ public final class FoodQDB {
         return foodScoresCache;  // Trả về danh sách điểm số thực phẩm
     }
 
+    public Map<String, String> getFoodInfo() {
+        return infoCache;  // Trả về danh sách thông tin thực phẩm
+    }
+
     // Lấy idFood theo chỉ số
     public String getIdFoodByIndex(int index) {
         String[] ids = foodScoresCache.keySet().toArray(new String[0]);
@@ -99,10 +126,23 @@ public final class FoodQDB {
         return ids[index];  // Trả về idFood tương ứng với chỉ số
     }
 
+    public String getFoodInfoById(String idFood) {
+        // Get food info from the cache
+        String foodInfo = infoCache.get(idFood);
+        
+        if (foodInfo == null) {
+            LOGGER.log(Level.WARNING, MessageFormat.format("Không tìm thấy thông tin cho idFood: {0}", idFood));
+            return "Thông tin không có sẵn.";  // Return a message if the food info is not found
+        }
+        
+        return foodInfo;  // Return the food information from the cache
+    }
+    
     // Làm mới dữ liệu (xóa cache và tải lại dữ liệu)
     public synchronized void refreshData() {
         foodScoresCache.clear();
         imagePathsCache.clear();
+        infoCache.clear();
         loadData(); 
     }
 }

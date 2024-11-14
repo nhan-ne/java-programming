@@ -1,5 +1,8 @@
 package resource.code.Controller;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
@@ -38,7 +41,7 @@ public class Launcher {
         snakeModel = new SnakeManager(5, 5, SnakeManager.Direction.RIGHT, 3); // Vị trí ban đầu của rắn
         scoreManager = new ScoreManager(foodQDB);
         user = new User(phoneNumber, 0); // Người dùng với số điện thoại và điểm số
-        collisionManager = new CollisionManager(snakeModel, foodModel, potionModel,scoreManager,model); // Khởi tạo collisionManager
+        collisionManager = new CollisionManager(snakeModel, foodModel, potionModel, scoreManager, model); // Khởi tạo collisionManager
 
         // Khởi tạo view và game manager
         view = new GameView(model, foodModel, potionModel, snakeModel, scoreManager);
@@ -53,11 +56,21 @@ public class Launcher {
         JFrame frame = new JFrame("Snake");
         frame.add(view);  // Thêm panel GameView vào cửa sổ
         frame.addKeyListener(new KeyManager(snakeModel, model, collisionManager));  // Sử dụng collisionManager đã khai báo
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);  // Đóng cửa sổ khi kết thúc trò chơi
         frame.pack();
         frame.setLocationRelativeTo(null);  // Đặt cửa sổ ở giữa màn hình
         frame.setResizable(false);  // Không cho phép thay đổi kích thước cửa sổ
         frame.setVisible(true);  // Hiển thị cửa sổ
+
+        // Xử lý sự kiện khi người dùng nhấn "X" để quay lại StartGame thay vì đóng ứng dụng
+        frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);  // Không làm gì khi nhấn "X"
+        frame.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                // Hiển thị màn hình StartGame khi đóng cửa sổ
+                frame.setVisible(false);  // Ẩn cửa sổ hiện tại
+                new StartGame();  // Hiển thị lại màn hình StartGame
+            }
+        });
     }
 
     // Bắt đầu trò chơi

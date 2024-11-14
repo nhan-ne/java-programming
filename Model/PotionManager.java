@@ -8,75 +8,75 @@ import java.util.Set;
 
 public final class PotionManager {
     private final int gridSize;
-    private final List<String> potionIds;  // List of potion IDs
-    private int selectedPotion;  // ID of the selected potion
-    private Point potionPosition;  // Position of the selected potion
+    private final List<String> potionIds;  // Danh sách các ID potion
+    private int selectedPotion;  // ID của potion đã chọn
+    private Point potionPosition;  // Vị trí của potion đã chọn
 
     public PotionManager(int gridSize, PotionQDB potionQDB) {
         this.gridSize = gridSize;
-        this.potionIds = potionQDB.getPotionIds();  // Get potion IDs from the database
-        this.selectedPotion = -1;  // No potion selected initially
-        this.potionPosition = new Point(-1, -1);  // Set potion outside the map initially
-        update(new HashSet<>(), new HashSet<>());  // Set potion position avoiding snake and food
+        this.potionIds = potionQDB.getPotionIds();  // Lấy danh sách các potion ID từ cơ sở dữ liệu
+        this.selectedPotion = -1;  // Không chọn potion nào ban đầu
+        this.potionPosition = new Point(-1, -1);  // Đặt vị trí potion bên ngoài bản đồ ban đầu
+        update(new HashSet<>(), new HashSet<>());  // Cập nhật vị trí của potion, tránh các vị trí của rắn và thực phẩm
     }
 
-    // Generate a random position for the potion, avoiding snake and food positions
+    // Tạo vị trí ngẫu nhiên cho potion, tránh các vị trí của rắn và thực phẩm
     private void generatePosition(Set<Point> snakePositions, Set<Point> foodPositions) {
         Random rand = new Random();
-        selectedPotion = rand.nextInt(potionIds.size());  // Select a random potion
+        selectedPotion = rand.nextInt(potionIds.size());  // Chọn một potion ngẫu nhiên
 
         int posX, posY;
         do {
-            posX = 1 + rand.nextInt(gridSize - 2); 
-            posY = 1 + rand.nextInt(gridSize - 2); 
+            posX = 1 + rand.nextInt(gridSize - 2);  // Tạo tọa độ x ngẫu nhiên trong phạm vi bản đồ
+            posY = 1 + rand.nextInt(gridSize - 2);  // Tạo tọa độ y ngẫu nhiên trong phạm vi bản đồ
         } while (snakePositions.contains(new Point(posX, posY)) || foodPositions.contains(new Point(posX, posY)));
 
-        potionPosition.setLocation(posX, posY);  // Set the potion's new position
+        potionPosition.setLocation(posX, posY);  // Đặt vị trí mới cho potion
     }
 
-    // Update the potion position when the grid is refreshed
+    // Cập nhật vị trí potion khi bản đồ được làm mới
     public void update(Set<Point> snakePositions, Set<Point> foodPositions) {
-        // If potion position is outside the grid, generate a new valid position
+        // Nếu potion nằm ngoài bản đồ, tạo vị trí hợp lệ mới
         if (potionPosition.equals(new Point(-1, -1))) {
-            generatePosition(snakePositions, foodPositions);  // Update potion position
+            generatePosition(snakePositions, foodPositions);  // Cập nhật vị trí potion
         }
     }
 
-    // Return the position of the potion as a Set containing a Point
+    // Trả về vị trí của potion dưới dạng Set chứa Point
     public Set<Point> getPotionPosition() {
         Set<Point> potionSet = new HashSet<>();
         if (!potionPosition.equals(new Point(-1, -1))) {
-            potionSet.add(potionPosition);  // Add potion position to the set if it's valid
+            potionSet.add(potionPosition);  // Thêm vị trí potion vào set nếu hợp lệ
         }
-        return potionSet;  // Return set with the potion's position (could be empty if potionPosition is outside grid)
+        return potionSet;  // Trả về set chứa vị trí của potion (có thể rỗng nếu potionPosition nằm ngoài bản đồ)
     }
 
-    // Return the ID of the selected potion
+    // Trả về ID của potion đã chọn
     public String getSelectedPotionId() {
-        return potionIds.get(selectedPotion); 
+        return potionIds.get(selectedPotion);  // Trả về ID của potion đã chọn
     }
 
-    // Return the index of the selected potion in the list
+    // Trả về chỉ số của potion đã chọn trong danh sách
     public int getSelectedPotionIndex() {
-        return selectedPotion; 
+        return selectedPotion;  // Trả về chỉ số của potion đã chọn
     }
 
-    // Check if the given position matches the potion's position
+    // Kiểm tra xem vị trí cho trước có trùng với vị trí của potion không
     public String getPotionIdAt(Point position) {
         if (potionPosition.equals(position)) {
-            return getSelectedPotionId();  // Return potion ID if positions match
+            return getSelectedPotionId();  // Trả về ID của potion nếu vị trí trùng khớp
         }
-        return null;  // Return null if no match or potionPosition is invalid
+        return null;  // Trả về null nếu không có sự khớp hoặc potionPosition không hợp lệ
     }
 
-    // Remove the potion from the map after consumption by setting it outside the map
+    // Loại bỏ potion khỏi bản đồ sau khi được tiêu thụ, đặt nó ra ngoài bản đồ
     public void removePotion() {
-        potionPosition.setLocation(-1, -1);  // Set potion position outside the grid (invalid position)
+        potionPosition.setLocation(-1, -1);  // Đặt vị trí của potion ra ngoài bản đồ (vị trí không hợp lệ)
     }
 
-    // Get the image path of the selected potion from the PotionQDB
+    // Lấy đường dẫn hình ảnh của potion đã chọn từ PotionQDB
     public String getSelectedPotionImagePath(PotionQDB potionQDB) {
-        String potionId = getSelectedPotionId();  
-        return potionQDB.getImagePaths().get(potionId); 
+        String potionId = getSelectedPotionId();  // Lấy ID của potion đã chọn
+        return potionQDB.getImagePaths().get(potionId);  // Trả về đường dẫn hình ảnh của potion
     }
 }

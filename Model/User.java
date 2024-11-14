@@ -7,14 +7,11 @@ public final class User {
     private String phoneNumber; // Số điện thoại
     private int highScore; // Điểm cao nhất
 
-    // Constructor để khởi tạo User với số điện thoại và điểm cao
+    // Constructor chỉ khởi tạo với số điện thoại và điểm cao
     public User(String phoneNumber, int highScore) {
-        // Kiểm tra xem số điện thoại có hợp lệ không
         if (isValidPhoneNumber(phoneNumber)) {
             this.phoneNumber = phoneNumber;
-            Session.setTemporaryPhoneNumber(phoneNumber);  // Lưu số điện thoại tạm thời
         } else {
-            // Nếu số điện thoại không hợp lệ, ném lỗi
             throw new IllegalArgumentException("Số điện thoại không hợp lệ");
         }
         this.highScore = highScore;
@@ -22,11 +19,10 @@ public final class User {
 
     // Phương thức kiểm tra số điện thoại hợp lệ
     public boolean isValidPhoneNumber(String phoneNumber) {
-        // Biểu thức chính quy để kiểm tra số điện thoại (số điện thoại Việt Nam)
-        String regex = "^0[3|5|7|8|9][0-9]{8}$"; // Phải bắt đầu bằng '0' và theo sau là 9 chữ số
-        Pattern pattern = Pattern.compile(regex); // Biểu thức chính quy
-        Matcher matcher = pattern.matcher(phoneNumber); // Kiểm tra xem số điện thoại có khớp không
-        return matcher.matches(); // Trả về true nếu hợp lệ, false nếu không hợp lệ
+        String regex = "^0[3|5|7|8|9][0-9]{8}$"; // Kiểm tra số điện thoại Việt Nam
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(phoneNumber);
+        return matcher.matches();
     }
 
     // Getter và Setter cho số điện thoại và điểm cao
@@ -35,12 +31,9 @@ public final class User {
     }
 
     public void setPhoneNumber(String phoneNumber) {
-        // Kiểm tra nếu số điện thoại hợp lệ
         if (isValidPhoneNumber(phoneNumber)) {
             this.phoneNumber = phoneNumber;
-            Session.setTemporaryPhoneNumber(phoneNumber);  // Cập nhật số điện thoại tạm thời
         } else {
-            // Nếu số điện thoại không hợp lệ, ném lỗi
             throw new IllegalArgumentException("Số điện thoại không hợp lệ");
         }
     }

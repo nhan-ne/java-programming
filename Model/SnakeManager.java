@@ -120,6 +120,6 @@ public void grow(int segments) {
 
     // Phương thức tăng tốc độ di chuyển của rắn
     public void increaseSpeed() {
-        this.speed = Math.max(50, this.speed - 5);  // Tăng tốc độ (giảm giá trị speed)
+        this.speed = Math.max(50, this.speed - 3);  // Tăng tốc độ (giảm giá trị speed)
     }
 }

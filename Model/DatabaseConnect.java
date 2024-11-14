@@ -19,7 +19,7 @@ public class DatabaseConnect {
         }
     }
 
-    public Connection getConnection() {
+    public static Connection getConnection() {
         try {
             // Kết nối tới cơ sở dữ liệu và trả về kết nối
             Connection connection = DriverManager.getConnection(DB_URL, USER, PASSWORD);

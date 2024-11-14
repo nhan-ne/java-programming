@@ -23,7 +23,8 @@ public class CollisionManager {
         this.gameModel = gameModel;
     }
 
-    public boolean checkFoodAndPotionCollisions() {
+    // Kiểm tra va chạm với thức ăn
+    public boolean checkFoodCollision() {
         Point head = snakeManager.getHead();
 
         // Kiểm tra va chạm với food
@@ -39,6 +40,12 @@ public class CollisionManager {
                 return true;  // Ăn thức ăn thành công
             }
         }
+        return false;  // Không có va chạm với thức ăn
+    }
+
+    // Kiểm tra va chạm với potion
+    public boolean checkPotionCollision() {
+        Point head = snakeManager.getHead();
 
         // Kiểm tra va chạm với Potion
         for (Point potionPosition : potionManager.getPotionPosition()) {
@@ -49,16 +56,17 @@ public class CollisionManager {
             }
         }
 
-        return false;  // Không có va chạm nào
+        return false;  // Không có va chạm với potion
     }
 
+    // Áp dụng hiệu ứng potion
     private void applyPotionEffect(String potionId) {
         switch (potionId) {
             case "P1":
                 scoreManager.potionX2Score();
                 break;
             case "P2":
-                snakeManager.setSpeed(10);  // Tăng tốc độ của rắn
+                snakeManager.setSpeed(10);  // giảm tốc độ của rắn
                 break;
             case "P3":
                 snakeManager.grow(3);  // Rắn lớn lên thêm 3 phần
@@ -66,7 +74,7 @@ public class CollisionManager {
             default:
                 break;  // Nếu không có hiệu ứng, không làm gì
         }
-        potionManager.removePotion();
+        potionManager.removePotion();  // Xóa potion sau khi ăn
     }
 
     // Kiểm tra nếu rắn va chạm với biên hoặc tự cắn
@@ -87,5 +95,4 @@ public class CollisionManager {
 
         return false; // Không có va chạm, tiếp tục trò chơi
     }
-
 }

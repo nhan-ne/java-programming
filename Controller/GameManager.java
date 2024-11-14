@@ -10,6 +10,7 @@ import resource.code.Model.FoodManager;
 import resource.code.Model.GameModel;
 import resource.code.Model.PotionManager;
 import resource.code.Model.ScoreManager;
+import resource.code.Model.Session;
 import resource.code.Model.SnakeManager;
 import resource.code.Model.User;
 import resource.code.Model.UserQDB;
@@ -40,7 +41,7 @@ public class GameManager {
         this.scoreManager = scoreManager;
         this.gameView = gameView;
         this.gameOverManager = new GameOverManager();
-        this.collisionManager = new CollisionManager(snakeManager, foodManager, potionManager, scoreManager,gameModel);
+        this.collisionManager = new CollisionManager(snakeManager, foodManager, potionManager, scoreManager, gameModel);
         this.gameStarted = false;
         this.user = user;
     }
@@ -59,7 +60,7 @@ public class GameManager {
     // Kết thúc trò chơi và xử lý game over
     public void endGame() {
         gameOverManager.setGameOver(true);
-        saveHighScoreToDatabase(user.getPhoneNumber());  // Lưu điểm cao vào cơ sở dữ liệu
+        saveHighScoreToDatabase();  // Lưu điểm cao vào cơ sở dữ liệu
         showGameOverDialog();  // Hiển thị hộp thoại game over
 
         if (gameLoop != null) {
@@ -67,15 +68,25 @@ public class GameManager {
         }
     }
 
-    // Lưu điểm cao của người chơi vào cơ sở dữ liệu nếu đây là điểm cao mới
-    private void saveHighScoreToDatabase(String phone) {
-        int highScore = scoreManager.getScore();
-        if (highScore > user.getHighScore()) {
-            user.setHighScore(highScore);
-            user.setPhoneNumber(phone);
-            UserQDB.saveHighScore(user);  // Lưu điểm cao mới
+    private void saveHighScoreToDatabase() {
+        String phone = Session.getTemporaryPhoneNumber();  // Lấy số điện thoại tạm thời từ Session
+    
+        // Nếu số điện thoại hợp lệ trong Session (đảm bảo rằng người dùng đã đăng nhập)
+        if (phone != null) {  
+            int highScore = scoreManager.getScore();  // Lấy điểm hiện tại từ game
+            int currentHighScore = UserQDB.getHighScore(phone);  // Lấy điểm cao hiện tại từ cơ sở dữ liệu
+    
+            // Chỉ cập nhật nếu điểm hiện tại cao hơn điểm đã lưu trong cơ sở dữ liệu
+            if (highScore > currentHighScore) {
+                user.setHighScore(highScore);  // Cập nhật điểm cao
+                UserQDB.saveHighScore(user);  // Lưu điểm cao vào cơ sở dữ liệu
+            }
+        } else {
+            System.out.println("Chưa có số điện thoại trong Session, không thể lưu điểm.");
         }
     }
+    
+    
 
     // Hiển thị hộp thoại game over để cho phép người chơi bắt đầu lại hoặc thoát
     private void showGameOverDialog() {
@@ -117,21 +128,33 @@ public class GameManager {
         if (gameStarted && !gameOverManager.isGameOver()) {
             snakeManager.move();
             checkGameOver();
-            // Khi rắn ăn 3 thức ăn, hiển thị potion
-            if (foodEatenCount >= 3) {
-                potionManager.update(new HashSet<>(snakeManager.getBody()), new HashSet<>(foodManager.getPosition()));
-                foodEatenCount = 0;  // Reset đếm thức ăn
-            }
-            if (collisionManager.checkFoodAndPotionCollisions()) {
+
+            // Kiểm tra va chạm với thức ăn và potion
+            if (collisionManager.checkFoodCollision()) {
                 foodManager.update(new HashSet<>(snakeManager.getBody()), new HashSet<>());
                 foodEaten = true;  // Rắn ăn thức ăn
                 foodEatenCount++;  // Tăng số lượng thức ăn đã ăn
+                
+                // Nếu đã ăn đủ 3 thức ăn, hiển thị potion
+                if (foodEatenCount >= 5) {
+                    // Kiểm tra nếu potion không được ăn
+                    if (!collisionManager.checkPotionCollision()) {
+                        potionManager.removePotion();  // Xóa potion
+                        potionManager.update(new HashSet<>(snakeManager.getBody()), new HashSet<>(foodManager.getPosition()));
+                    } 
+                    foodEatenCount = 0;  // Reset đếm thức ăn sau khi ăn đủ 3 món
+                }
                 increaseGameSpeed();  // Tăng tốc độ trò chơi
+            }
+            if(collisionManager.checkPotionCollision()){
+                foodEatenCount = 0;
             }
         }
     }
+
+
     // Phương thức tăng tốc độ trò chơi sau khi ăn thức ăn
-    void increaseGameSpeed() {
+    private void increaseGameSpeed() {
         if (foodEaten) {
             snakeManager.increaseSpeed();  // Tăng tốc độ của rắn
             foodEaten = false;  // Reset cờ thức ăn đã ăn
@@ -140,7 +163,7 @@ public class GameManager {
 
     // Kiểm tra va chạm game over
     private void checkGameOver() {
-        if (collisionManager.checkGameOver(gameModel.getRows(),gameModel.getCols())) {
+        if (collisionManager.checkGameOver(gameModel.getRows(), gameModel.getCols())) {
             endGame();  // Nếu va chạm với chính mình, kết thúc trò chơi
         }
     }

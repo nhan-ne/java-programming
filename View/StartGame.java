@@ -12,11 +12,11 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.border.EmptyBorder;
 
 import resource.code.Controller.Launcher;
+import resource.code.Model.FoodManager;
+import resource.code.Model.PotionManager;
 import resource.code.Model.Session;
 import resource.code.Model.User;
 import resource.code.Model.UserQDB;
@@ -24,7 +24,11 @@ import resource.code.Model.UserQDB;
 public class StartGame extends JFrame {
     private JButton startButton = null;
     private JButton rankButton = null; // Nút Rank mới
+    private JButton infoButton = null; // Nút Info mới
     private Image backgroundImage;
+
+    private FoodManager foodManager;
+    private PotionManager potionManager;
 
     public StartGame() {
         setTitle("Welcome to Snake Game");
@@ -53,16 +57,19 @@ public class StartGame extends JFrame {
         startButton.setFocusPainted(false);
         startButton.setBorderPainted(false);
         startButton.setPreferredSize(new Dimension(150, 40));
-        
+
         // Add action listener to check session and either start the game or open the login form
         startButton.addActionListener(e -> {
             String phoneNumberInSession = Session.getTemporaryPhoneNumber();
+            System.out.println("Phone number in session: " + phoneNumberInSession); // Debugging output
             if (phoneNumberInSession != null && !phoneNumberInSession.trim().isEmpty()) {
                 // If phone number exists in session, proceed with the game
+                System.out.println("Valid phone number in session. Starting the game...");
                 dispose(); // Close the StartGame window
                 new Launcher(phoneNumberInSession); // Start the game
             } else {
                 // If no phone number in session, prompt for login
+                System.out.println("No valid phone number in session. Opening login form...");
                 new LoginForm(); // Open the login form
                 dispose(); // Close the StartGame window
             }
@@ -80,7 +87,29 @@ public class StartGame extends JFrame {
         // Thêm sự kiện cho nút Rank
         rankButton.addActionListener(e -> {
             List<User> topPlayers = UserQDB.getTopHighScores(); // Lấy danh sách người chơi top 6
-            showRankList(topPlayers); // Hiển thị danh sách
+            if (topPlayers != null && !topPlayers.isEmpty()) {
+                // Nếu có dữ liệu người chơi, hiển thị bảng xếp hạng
+                new Rank(topPlayers); // Hiển thị bảng xếp hạng trong cửa sổ Rank
+            } else {
+                // Nếu không có người chơi nào trong bảng xếp hạng
+                System.out.println("No players in the ranking list.");
+            }
+        });
+
+        // Tạo nút "Info" để xem thông tin thức ăn và potion
+        infoButton = new JButton("Info");
+        infoButton.setFont(new Font("Arial", Font.PLAIN, 20));
+        infoButton.setBackground(new Color(51, 102, 255));
+        infoButton.setForeground(Color.WHITE);
+        infoButton.setFocusPainted(false);
+        infoButton.setBorderPainted(false);
+        infoButton.setPreferredSize(new Dimension(150, 40));
+
+        // Thêm sự kiện cho nút Info
+        infoButton.addActionListener(e -> {
+            // Mở cửa sổ thông tin game
+            System.out.println("Opening game info...");
+            new InfoGame(foodManager, potionManager).showInfo(); 
         });
 
         // Tạo panel chứa các nút và căn giữa
@@ -89,6 +118,7 @@ public class StartGame extends JFrame {
         buttonPanel.setBorder(new EmptyBorder(0, 0, 50, 0));
         buttonPanel.add(startButton);
         buttonPanel.add(rankButton);
+        buttonPanel.add(infoButton); // Thêm nút Info vào panel
 
         // Thêm panel chứa các nút vào panel chính
         panel.add(buttonPanel, BorderLayout.SOUTH);
@@ -97,30 +127,6 @@ public class StartGame extends JFrame {
         add(panel);
 
         setVisible(true);
-    }
-
-    private void showRankList(List<User> topPlayers) {
-        JFrame rankFrame = new JFrame("Top 6 High Scores");
-        rankFrame.setSize(400, 400);
-        rankFrame.setLocationRelativeTo(null);
-
-        JTextArea rankArea = new JTextArea();
-        rankArea.setEditable(false);
-        rankArea.setFont(new Font("Arial", Font.PLAIN, 16));
-        
-        // Format và hiển thị danh sách người chơi
-        StringBuilder rankText = new StringBuilder();
-        for (int i = 0; i < topPlayers.size(); i++) {
-            User user = topPlayers.get(i);
-            rankText.append("Top ").append(i + 1).append(". Phone: ").append(user.getPhoneNumber())
-                    .append(" - HighScore: ").append(user.getHighScore()).append("\n");
-        }
-
-        rankArea.setText(rankText.toString());
-
-        JScrollPane scrollPane = new JScrollPane(rankArea);
-        rankFrame.add(scrollPane);
-        rankFrame.setVisible(true);
     }
 
     private class BackgroundPanel extends JPanel {
